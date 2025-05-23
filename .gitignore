@@ -1,0 +1,36 @@
+# -----------------------
+# macOS / Windows files
+# -----------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------
+# Go build artifacts
+# -----------------------
+/bin/
+/pkg/
+*.exe
+*.test
+
+# -----------------------
+# Terraform
+# -----------------------
+# Provider cache directories
+**/.terraform/
+# State files and backups
+**/*.tfstate
+**/*.tfstate.backup
+# Plan files
+**/*.tfplan
+**/*.tfplan.json
+# Lock file (keep this!)
+**/.terraform.lock.hcl
+
+# -----------------------
+# IDE / editor backups
+# -----------------------
+.idea/
+.vscode/
+*~
+
+docs/

@@ -1,0 +1,145 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.8.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "example_resource.this",
+          "mode": "managed",
+          "type": "example_type",
+          "name": "this",
+          "provider_name": "registry.terraform.io/hashicorp/example",
+          "schema_version": 0,
+          "values": {
+            "name": "new_name",
+            "count": 5,
+            "tags": {
+              "env": "prod",
+              "team": "new_team"
+            },
+            "sensitive_data": "new_sensitive_value (sensitive)"
+          }
+        }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "example_resource.this",
+      "mode": "managed",
+      "type": "example_type",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/example",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "old_name",
+          "count": 5,
+          "tags": {
+            "env": "dev",
+            "team": "old_team"
+          },
+          "old_attr": "will_be_removed",
+          "sensitive_data": "old_sensitive_value"
+        },
+        "after": {
+          "name": "new_name",
+          "count": 5,
+          "tags": {
+            "env": "prod",
+            "team": "new_team"
+          },
+          "new_attr": "was_added",
+          "sensitive_data": "new_sensitive_value"
+        },
+        "after_unknown": {
+            "computed_value": true
+        },
+        "before_sensitive": {
+            "sensitive_data": true
+        },
+        "after_sensitive": {
+            "sensitive_data": true
+        }
+      }
+    },
+    {
+      "address": "another_resource.created",
+      "mode": "managed",
+      "type": "another_type",
+      "name": "created",
+      "provider_name": "registry.terraform.io/hashicorp/example",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "description": "This resource is created"
+        },
+        "after_unknown": {},
+        "before_sensitive": null,
+        "after_sensitive": null
+      }
+    },
+    {
+      "address": "yet_another_resource.deleted",
+      "mode": "managed",
+      "type": "yet_another_type",
+      "name": "deleted",
+      "provider_name": "registry.terraform.io/hashicorp/example",
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "info": "This resource is deleted"
+        },
+        "after": null,
+        "after_unknown": null,
+        "before_sensitive": null,
+        "after_sensitive": null
+      }
+    }
+  ],
+  "prior_state": {
+     "format_version": "1.0",
+     "terraform_version": "1.8.0",
+     "values": {
+        "root_module": {
+          "resources": [
+            {
+              "address": "example_resource.this",
+              "mode": "managed",
+              "type": "example_type",
+              "name": "this",
+              "provider_name": "registry.terraform.io/hashicorp/example",
+              "schema_version": 0,
+              "values": {
+                "name": "old_name",
+                "count": 5,
+                "tags": {
+                  "env": "dev",
+                  "team": "old_team"
+                },
+                "old_attr": "will_be_removed",
+                "sensitive_data": "old_sensitive_value"
+              },
+              "sensitive_values": {
+                 "sensitive_data": true
+              }
+            },
+            {
+              "address": "yet_another_resource.deleted",
+              "mode": "managed",
+              "type": "yet_another_type",
+              "name": "deleted",
+              "provider_name": "registry.terraform.io/hashicorp/example",
+              "schema_version": 0,
+              "values": {
+                 "info": "This resource is deleted"
+              },
+              "sensitive_values": {}
+            }
+          ]
+        }
+     }
+  }
+} 
