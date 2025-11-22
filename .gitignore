@@ -1,36 +1,57 @@
 # -----------------------
-# macOS / Windows files
+# Binaries
 # -----------------------
-.DS_Store
-Thumbs.db
+infrasync
+infrasync-*
+!infrasync-*.go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
 # -----------------------
 # Go build artifacts
 # -----------------------
 /bin/
 /pkg/
-*.exe
+/dist/
 *.test
+*.out
+coverage.html
+coverage.out
+go.work
+go.work.sum
+
+# -----------------------
+# macOS / Windows files
+# -----------------------
+.DS_Store
+Thumbs.db
 
 # -----------------------
 # Terraform
 # -----------------------
-# Provider cache directories
 **/.terraform/
-# State files and backups
 **/*.tfstate
 **/*.tfstate.backup
-# Plan files
 **/*.tfplan
 **/*.tfplan.json
-# Lock file (keep this!)
-**/.terraform.lock.hcl
+tfplan
+tfplan.json
 
 # -----------------------
-# IDE / editor backups
+# IDE / editor
 # -----------------------
 .idea/
 .vscode/
 *~
+*.swp
+*.swo
 
-docs/
+# -----------------------
+# Environment
+# -----------------------
+.env
+.env.local
+*.env
