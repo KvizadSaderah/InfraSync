@@ -1,0 +1,122 @@
+name: 'InfraSync - Terraform Plan Analysis'
+description: 'Analyze Terraform plans and post beautiful summaries to GitHub Pull Requests'
+author: 'InfraSync'
+
+branding:
+  icon: 'eye'
+  color: 'purple'
+
+inputs:
+  plan-file:
+    description: 'Path to the Terraform plan JSON file'
+    required: true
+  github-token:
+    description: 'GitHub token for posting comments'
+    required: true
+    default: ${{ github.token }}
+  working-directory:
+    description: 'Working directory where terraform commands should be run'
+    required: false
+    default: '.'
+  show-details:
+    description: 'Show detailed attribute changes in the output'
+    required: false
+    default: 'true'
+  post-comment:
+    description: 'Post the analysis as a PR comment'
+    required: false
+    default: 'true'
+  update-comment:
+    description: 'Update existing comment instead of creating new ones'
+    required: false
+    default: 'true'
+
+outputs:
+  summary:
+    description: 'Compact summary of changes (e.g., +2 ~1 -0)'
+  has-changes:
+    description: 'Boolean indicating if there are any changes'
+  to-create:
+    description: 'Number of resources to create'
+  to-update:
+    description: 'Number of resources to update'
+  to-replace:
+    description: 'Number of resources to replace'
+  to-destroy:
+    description: 'Number of resources to destroy'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Install InfraSync
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}/..
+        go build -o /tmp/infrasync cmd/infrasync/main.go
+
+    - name: Generate Markdown Report
+      id: analyze
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Generate markdown output
+        /tmp/infrasync --format markdown "${{ inputs.plan-file }}" > /tmp/infrasync-output.md
+
+        # Also get compact summary
+        SUMMARY=$(/tmp/infrasync --format markdown --compact "${{ inputs.plan-file }}" | head -1 || echo "Analysis complete")
+
+        # Read the full output
+        MARKDOWN_CONTENT=$(cat /tmp/infrasync-output.md)
+
+        # Set outputs
+        echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
+        echo "markdown<<EOF" >> $GITHUB_OUTPUT
+        echo "$MARKDOWN_CONTENT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Post or Update PR Comment
+      if: inputs.post-comment == 'true' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const markdown = fs.readFileSync('/tmp/infrasync-output.md', 'utf8');
+
+          const commentMarker = '<!-- infrasync-comment -->';
+          const body = commentMarker + '\n' + markdown;
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existingComment = comments.find(comment =>
+            comment.body.includes(commentMarker)
+          );
+
+          if (existingComment && '${{ inputs.update-comment }}' === 'true') {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+              body: body,
+            });
+            console.log('Updated existing InfraSync comment');
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body,
+            });
+            console.log('Created new InfraSync comment');
+          }

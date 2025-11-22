@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Build binaries
+        run: |
+          # Linux amd64
+          GOOS=linux GOARCH=amd64 go build -o dist/infrasync-linux-amd64 -ldflags="-s -w" ./cmd/infrasync
+
+          # Linux arm64
+          GOOS=linux GOARCH=arm64 go build -o dist/infrasync-linux-arm64 -ldflags="-s -w" ./cmd/infrasync
+
+          # macOS amd64
+          GOOS=darwin GOARCH=amd64 go build -o dist/infrasync-darwin-amd64 -ldflags="-s -w" ./cmd/infrasync
+
+          # macOS arm64 (Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -o dist/infrasync-darwin-arm64 -ldflags="-s -w" ./cmd/infrasync
+
+          # Windows amd64
+          GOOS=windows GOARCH=amd64 go build -o dist/infrasync-windows-amd64.exe -ldflags="-s -w" ./cmd/infrasync
+
+          # Create checksums
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/infrasync-*
+            dist/checksums.txt
+          body: |
+            ## Installation
+
+            Download the binary for your platform and add it to your PATH.
+
+            ### Linux (amd64)
+            ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/infrasync-linux-amd64
+            chmod +x infrasync-linux-amd64
+            sudo mv infrasync-linux-amd64 /usr/local/bin/infrasync
+            ```
+
+            ### macOS (Apple Silicon)
+            ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/infrasync-darwin-arm64
+            chmod +x infrasync-darwin-arm64
+            sudo mv infrasync-darwin-arm64 /usr/local/bin/infrasync
+            ```
+
+            ### Verify checksum
+            ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/checksums.txt
+            sha256sum -c checksums.txt
+            ```
+
+            ## What's Changed
+            See commits for details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

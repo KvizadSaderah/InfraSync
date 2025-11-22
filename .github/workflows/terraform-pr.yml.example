@@ -1,0 +1,52 @@
+name: Terraform Plan PR Comment
+
+on:
+  pull_request:
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.github/workflows/terraform-pr.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: |
+          terraform plan -out=tfplan
+          terraform show -json tfplan > tfplan.json
+
+      - name: Analyze Plan with InfraSync
+        uses: ./action  # If InfraSync is in your repo
+        # Or use: kvizadsaderah/infrasync/action@v0.2.0
+        with:
+          plan-file: tfplan.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          show-details: true
+          post-comment: true
+          update-comment: true
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            tfplan
+            tfplan.json
